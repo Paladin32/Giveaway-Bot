@@ -1,4 +1,5 @@
 import app from "./app";
+import { startGiveawayBot } from "./giveaway/discord-bot";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
@@ -22,4 +23,10 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  void startGiveawayBot().catch((error: unknown) => {
+    logger.error(
+      { errorName: error instanceof Error ? error.name : "UnknownError" },
+      "Discord giveaway bot failed to start",
+    );
+  });
 });

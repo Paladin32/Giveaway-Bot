@@ -1,15 +1,16 @@
-# [Project name]
+# Secret Giveaway Bot
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A Discord bot for timed giveaways, private winner selection, and prize claim deadlines.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server and giveaway bot (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required secret to connect the bot: `DISCORD_BOT_TOKEN`
+- Optional env: `GIVEAWAY_DATA_FILE` — override the local JSON file used to persist giveaways
 
 ## Stack
 
@@ -18,19 +19,25 @@ _Replace the heading above with the project's name, and this line with one sente
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Build: esbuild
+- Discord: discord.js slash commands and Gateway events
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/api-server/src/giveaway/` — giveaway state, slash commands, Discord handlers, and message presentation.
+- Giveaway records are stored in `.data/giveaway-bot.json` by default and are not committed.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Winner choices and claim details are never included in public giveaway messages; selection and claim notifications are private.
+- Giveaways survive bot process restarts using the local JSON store.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `/giveaway-create` posts a giveaway with prize, duration, claim time, description, and eligibility requirement.
+- Entrants join using a button. `/giveaway-pick` privately selects an entrant; if none is selected, the bot draws randomly at close.
+- `/giveaway-end` closes a giveaway early; `/giveaway-list` privately lists running giveaways in the server.
+- Winners receive a private claim button and have the configured claim time to use it.
 
 ## User preferences
 
