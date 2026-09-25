@@ -70,6 +70,23 @@ export const giveawayCommands = [
   new SlashCommandBuilder()
     .setName("giveaway-list")
     .setDescription("Privately check running giveaways in this server"),
+  new SlashCommandBuilder()
+    .setName("feedback")
+    .setDescription("Envoyer un feedback sur le bot")
+    .addStringOption((option) =>
+      option
+        .setName("message")
+        .setDescription("Ton message (optionnel)")
+        .setMaxLength(1000),
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("rate")
+        .setDescription("Note de 1 à 5")
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(5),
+    ),
 ].map((command) => command.toJSON());
 
 const durationUnits: Record<string, number> = {

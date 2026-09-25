@@ -391,34 +391,28 @@ async function handleFeedback(
   feedbackStore: FeedbackStore,
 ): Promise<void> {
   const message = interaction.options.getString("message") ?? "";
-  const rating = interaction.options.getInteger("rate");
-
-  if (!message && rating === null) {
-    await interaction.editReply(
-      "You must provide either a message or a rating (or both).",
-    );
-    return;
-  }
+  const rating = interaction.options.getInteger("rate", true);
 
   const feedback: Feedback = {
     id: randomUUID(),
     userId: interaction.user.id,
     username: interaction.user.username,
     message,
-    rating: rating ?? 3,
+    rating,
     timestamp: Date.now(),
   };
 
+  feedbackStore.add(feedback);
+
   try {
-    feedbackStore.add(feedback);
     await sendFeedbackToServer(client, feedback);
     await interaction.editReply(
-      "Thank you for your feedback! It has been sent to the developers.",
+      "Merci pour ton feedback ! Il a bien été envoyé.",
     );
   } catch (error) {
-    logger.error({ error }, "Failed to process feedback");
+    logger.error({ error }, "Failed to send feedback");
     await interaction.editReply(
-      "An error occurred while processing your feedback. Please try again.",
+      "Une erreur est survenue lors de l'envoi du feedback.",
     );
   }
 }
