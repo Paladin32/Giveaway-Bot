@@ -20,6 +20,7 @@ import {
   giveawayEmbed,
 } from "./presentation";
 import { GiveawayStore, type Giveaway } from "./store";
+import { FeedbackStore, sendFeedbackToServer, type Feedback } from "./feedback";
 
 const minimumDuration = 60_000;
 const maximumDuration = 365 * 24 * 60 * 60 * 1000;
@@ -384,15 +385,55 @@ async function handleList(
   }
 }
 
+async function handleFeedback(
+  interaction: ChatInputCommandInteraction,
+  client: Client,
+  feedbackStore: FeedbackStore,
+): Promise<void> {
+  const message = interaction.options.getString("message") ?? "";
+  const rating = interaction.options.getInteger("rate");
+
+  if (!message && rating === null) {
+    await interaction.editReply(
+      "You must provide either a message or a rating (or both).",
+    );
+    return;
+  }
+
+  const feedback: Feedback = {
+    id: randomUUID(),
+    userId: interaction.user.id,
+    username: interaction.user.username,
+    message,
+    rating: rating ?? 3,
+    timestamp: Date.now(),
+  };
+
+  try {
+    feedbackStore.add(feedback);
+    await sendFeedbackToServer(client, feedback);
+    await interaction.editReply(
+      "Thank you for your feedback! It has been sent to the developers.",
+    );
+  } catch (error) {
+    logger.error({ error }, "Failed to process feedback");
+    await interaction.editReply(
+      "An error occurred while processing your feedback. Please try again.",
+    );
+  }
+}
+
 async function handleCommand(
   interaction: ChatInputCommandInteraction,
   client: Client,
   store: GiveawayStore,
+  feedbackStore: FeedbackStore,
 ): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (
     interaction.commandName !== "giveaway-list" &&
+    interaction.commandName !== "feedback" &&
     !getManagementPermission(interaction)
   ) {
     await interaction.editReply(
@@ -414,8 +455,11 @@ async function handleCommand(
     case "giveaway-list":
       await handleList(interaction, store);
       break;
+    case "feedback":
+      await handleFeedback(interaction, client, feedbackStore);
+      break;
     default:
-      await interaction.editReply("Unknown giveaway command.");
+      await interaction.editReply("Unknown command.");
   }
 }
 
@@ -523,12 +567,13 @@ export async function startGiveawayBot(): Promise<void> {
   }
 
   const store = new GiveawayStore();
+  const feedbackStore = new FeedbackStore();
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
   let sweepInProgress = false;
 
   client.on(Events.InteractionCreate, (interaction) => {
     const handler = interaction.isChatInputCommand()
-      ? handleCommand(interaction, client, store)
+      ? handleCommand(interaction, client, store, feedbackStore)
       : handleEnterButton(interaction, store).then(() =>
           handleClaimButton(interaction, store),
         );
