@@ -16,7 +16,7 @@ export function giveawayEmbed(giveaway: Giveaway): EmbedBuilder {
     .addFields(
       { name: "Prize", value: giveaway.prize, inline: true },
       {
-        name: "Entries",
+        name: "Participants",
         value: String(giveaway.participantIds.length),
         inline: true,
       },
@@ -24,8 +24,20 @@ export function giveawayEmbed(giveaway: Giveaway): EmbedBuilder {
         name: "Requirement",
         value: giveaway.requirement || "No additional requirement",
       },
-    )
-    .setFooter({ text: `Giveaway ID: ${giveaway.id}` });
+    );
+
+  if (giveaway.roleEntryBonuses?.length) {
+    embed.addFields({
+      name: "Bonus entries",
+      value: giveaway.roleEntryBonuses
+        .map((bonus) => `<@&${bonus.roleId}> — **${bonus.entries} entries**`)
+        .join("\n"),
+    });
+  } else {
+    embed.addFields({ name: "Entries", value: "Everyone gets 1 entry." });
+  }
+
+  embed.setFooter({ text: `Giveaway ID: ${giveaway.id}` });
 
   if (giveaway.status === "running") {
     embed.addFields({

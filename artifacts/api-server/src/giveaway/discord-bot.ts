@@ -12,7 +12,11 @@ import {
   type Interaction,
 } from "discord.js";
 import { logger } from "../lib/logger";
-import { giveawayCommands, parseDuration } from "./commands";
+import {
+  giveawayCommands,
+  parseDuration,
+  parseRoleEntryBonuses,
+} from "./commands";
 import {
   claimButton,
   enterButton,
@@ -78,6 +82,38 @@ async function notifyCreatorPrivately(
   }
 }
 
+async function getWeightedEntrants(
+  client: Client,
+  giveaway: Giveaway,
+): Promise<string[]> {
+  const bonuses = giveaway.roleEntryBonuses ?? [];
+  if (bonuses.length === 0) return [...giveaway.participantIds];
+
+  const guild = await client.guilds.fetch(giveaway.guildId);
+  const weighted: string[] = [];
+  for (const participantId of giveaway.participantIds) {
+    let entries = 1;
+    try {
+      const member = await guild.members.fetch(participantId);
+      entries = Math.max(
+        1,
+        ...bonuses
+          .filter((bonus) => member.roles.cache.has(bonus.roleId))
+          .map((bonus) => bonus.entries),
+      );
+    } catch {
+      logger.warn(
+        { giveawayId: giveaway.id, participantId },
+        "Could not fetch participant roles; using one entry",
+      );
+    }
+    for (let index = 0; index < entries; index += 1) {
+      weighted.push(participantId);
+    }
+  }
+  return weighted;
+}
+
 async function closeGiveaway(
   client: Client,
   store: GiveawayStore,
@@ -87,10 +123,9 @@ async function closeGiveaway(
   if (!giveaway) return "missing";
   if (giveaway.status !== "running") return "already-closed";
 
-  const entrants = [...giveaway.participantIds];
+  const entrants = await getWeightedEntrants(client, giveaway);
   const selectedWinner =
-    giveaway.selectedWinnerId &&
-    entrants.includes(giveaway.selectedWinnerId)
+    giveaway.selectedWinnerId && giveaway.participantIds.includes(giveaway.selectedWinnerId)
       ? giveaway.selectedWinnerId
       : undefined;
   const winnerId =
@@ -226,6 +261,23 @@ async function handleCreate(
     return;
   }
 
+  const roleEntryBonuses = parseRoleEntryBonuses(
+    interaction.options.getString("role-entries"),
+  );
+  if (roleEntryBonuses === undefined) {
+    await interaction.editReply(
+      "Invalid role entries. Use `<@&roleId>=entries`, separated by commas, for example `<@&123456789012345678>=3, <@&987654321098765432>=5`. Entries must be between 2 and 100.",
+    );
+    return;
+  }
+  const guild = await client.guilds.fetch(interaction.guildId);
+  for (const bonus of roleEntryBonuses) {
+    if (!guild.roles.cache.has(bonus.roleId)) {
+      await interaction.editReply(`I couldn't find the role <@&${bonus.roleId}> in this server.`);
+      return;
+    }
+  }
+
   const channel = interaction.channel;
   if (!channel?.isTextBased() || !("send" in channel)) {
     await interaction.editReply(
@@ -244,6 +296,7 @@ async function handleCreate(
     prize: interaction.options.getString("prize", true),
     description: interaction.options.getString("description") ?? "",
     requirement: interaction.options.getString("requirement") ?? "",
+    roleEntryBonuses,
     createdAt: now,
     endsAt: now + duration,
     claimTimeMs: claimTime,
@@ -288,17 +341,13 @@ async function handlePick(
   const id = interaction.options.getString("giveaway-id", true);
   const giveaway = getGuildGiveaway(store, id, interaction.guildId);
   if (!giveaway || giveaway.status !== "running") {
-    await interaction.editReply(
-      "That giveaway isn't running in this server.",
-    );
+    await interaction.editReply("That giveaway isn't running in this server.");
     return;
   }
 
   const entrant = interaction.options.getUser("entrant", true);
   if (!giveaway.participantIds.includes(entrant.id)) {
-    await interaction.editReply(
-      `${entrant.username} hasn't entered this giveaway.`,
-    );
+    await interaction.editReply(`${entrant.username} hasn't entered this giveaway.`);
     return;
   }
 
@@ -322,9 +371,7 @@ async function handleEnd(
   const id = interaction.options.getString("giveaway-id", true);
   const giveaway = getGuildGiveaway(store, id, interaction.guildId);
   if (!giveaway || giveaway.status !== "running") {
-    await interaction.editReply(
-      "That giveaway isn't running in this server.",
-    );
+    await interaction.editReply("That giveaway isn't running in this server.");
     return;
   }
 
@@ -360,7 +407,7 @@ async function handleList(
 
   const lines = running.map(
     (giveaway) =>
-      `• \`${giveaway.id}\` — **${giveaway.prize}** — <#${giveaway.channelId}> — ends <t:${Math.floor(giveaway.endsAt / 1000)}:R> — ${giveaway.participantIds.length} entries`,
+      `• \`${giveaway.id}\` — **${giveaway.prize}** — <#${giveaway.channelId}> — ends <t:${Math.floor(giveaway.endsAt / 1000)}:R> — ${giveaway.participantIds.length} participants`,
   );
   const chunks: string[] = [];
   let current = "";

@@ -6,6 +6,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import type { RoleEntryBonus } from "./commands";
 
 export type GiveawayStatus =
   | "running"
@@ -23,6 +24,7 @@ export interface Giveaway {
   prize: string;
   description: string;
   requirement: string;
+  roleEntryBonuses?: RoleEntryBonus[];
   createdAt: number;
   endsAt: number;
   claimTimeMs: number;

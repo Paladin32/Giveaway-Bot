@@ -40,6 +40,12 @@ export const giveawayCommands = [
         .setName("requirement")
         .setDescription("Eligibility requirement shown to participants")
         .setMaxLength(1000),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("role-entries")
+        .setDescription("Bonus entries: <@&roleId>=3, <@&roleId>=5")
+        .setMaxLength(1000),
     ),
   new SlashCommandBuilder()
     .setName("giveaway-pick")
@@ -79,6 +85,36 @@ const durationUnits: Record<string, number> = {
   m: 60 * 1000,
   s: 1000,
 };
+
+export interface RoleEntryBonus {
+  roleId: string;
+  entries: number;
+}
+
+export function parseRoleEntryBonuses(
+  input: string | null | undefined,
+): RoleEntryBonus[] | undefined {
+  if (!input?.trim()) return [];
+
+  const bonuses = input.split(",").map((part) => part.trim());
+  if (bonuses.some((part) => !part)) return undefined;
+
+  const parsed: RoleEntryBonus[] = [];
+  for (const bonus of bonuses) {
+    const match = bonus.match(/^(?:<@&(\d+)>|(\d{17,20}))\s*[:=]\s*(\d+)$/);
+    if (!match) return undefined;
+
+    const roleId = match[1] ?? match[2];
+    const entries = Number(match[3]);
+    if (!roleId || !Number.isSafeInteger(entries) || entries < 2 || entries > 100) {
+      return undefined;
+    }
+    if (parsed.some((item) => item.roleId === roleId)) return undefined;
+    parsed.push({ roleId, entries });
+  }
+
+  return parsed;
+}
 
 export function parseDuration(input: string): number | undefined {
   const compact = input.trim().toLowerCase().replace(/\s+/g, "");
