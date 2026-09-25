@@ -1,0 +1,23 @@
+[
+  {
+    "id": "c9d562c6",
+    "guildId": "1552565879017832528",
+    "channelId": "1552927447828144169",
+    "messageId": "1552936057157460000",
+    "creatorId": "1264183250243420211",
+    "prize": "Test PRIZE",
+    "description": "test DESCRIPTION",
+    "requirement": "test REQ",
+    "createdAt": 1790319208073,
+    "endsAt": 1790322808073,
+    "claimTimeMs": 36000000,
+    "participantIds": [
+      "1264183250243420211"
+    ],
+    "status": "claimed",
+    "selectedWinnerId": "1264183250243420211",
+    "winnerId": "1264183250243420211",
+    "claimDeadlineAt": 1790355734868,
+    "claimedAt": 1790319747991
+  }
+]
