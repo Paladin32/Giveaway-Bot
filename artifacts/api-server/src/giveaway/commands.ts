@@ -76,8 +76,9 @@ export const giveawayCommands = [
     .addStringOption((option) =>
       option
         .setName("message")
-        .setDescription("Ton message (optionnel)")
-        .setMaxLength(1000),
+        .setDescription("Ton message")
+        .setMaxLength(1000)
+        .setRequired(true),
     )
     .addIntegerOption((option) =>
       option

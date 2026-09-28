@@ -1,5 +1,5 @@
 import app from "./app";
-import { startGiveawayBot } from "./giveaway/discord-bot";
+import { startGiveawayBot } from "./giveaway/feedback";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];

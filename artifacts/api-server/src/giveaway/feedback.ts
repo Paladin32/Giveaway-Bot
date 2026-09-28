@@ -20,7 +20,7 @@ import {
   giveawayEmbed,
 } from "./presentation";
 import { GiveawayStore, type Giveaway } from "./store";
-import { FeedbackStore, sendFeedbackToServer, type Feedback } from "./feedback";
+import { FeedbackStore, sendFeedbackToServer, type Feedback } from "./discord-bot";
 
 const minimumDuration = 60_000;
 const maximumDuration = 365 * 24 * 60 * 60 * 1000;

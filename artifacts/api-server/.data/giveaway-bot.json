@@ -19,5 +19,26 @@
     "winnerId": "1264183250243420211",
     "claimDeadlineAt": 1790355734868,
     "claimedAt": 1790319747991
+  },
+  {
+    "id": "e865bd71",
+    "guildId": "1552565879017832528",
+    "channelId": "1552927447828144169",
+    "messageId": "1553410537130295390",
+    "creatorId": "1264183250243420211",
+    "prize": "test",
+    "description": "testttt",
+    "requirement": "nune",
+    "roleEntryBonuses": [],
+    "createdAt": 1790432332985,
+    "endsAt": 1790432392985,
+    "claimTimeMs": 1468800000,
+    "participantIds": [
+      "1264183250243420211"
+    ],
+    "status": "claimed",
+    "winnerId": "1264183250243420211",
+    "claimDeadlineAt": 1791901201542,
+    "claimedAt": 1790432944625
   }
 ]
