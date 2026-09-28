@@ -11,6 +11,7 @@ A Discord bot for timed giveaways, private winner selection, and prize claim dea
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required secret to connect the bot: `DISCORD_BOT_TOKEN`
 - Optional env: `GIVEAWAY_DATA_FILE` — override the local JSON file used to persist giveaways
+- Optional env: `DISCORD_FEEDBACK_CHANNEL_ID` — target a specific feedback channel ID; otherwise the bot uses `・feedback` in the configured feedback server
 
 ## Stack
 

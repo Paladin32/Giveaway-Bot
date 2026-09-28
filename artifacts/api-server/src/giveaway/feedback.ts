@@ -410,9 +410,15 @@ async function handleFeedback(
       "Thank you for your feedback! It has been sent to the developers.",
     );
   } catch (error) {
-    logger.error({ error }, "Failed to process feedback");
+    logger.error(
+      {
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorMessage: error instanceof Error ? error.message : String(error),
+      },
+      "Failed to process feedback",
+    );
     await interaction.editReply(
-      "An error occurred while processing your feedback. Please try again.",
+      "Impossible d'envoyer le feedback dans le salon dédié. Vérifie que le bot peut y voir et envoyer des messages.",
     );
   }
 }

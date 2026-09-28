@@ -11,6 +11,7 @@ export interface Feedback {
 
 const FEEDBACK_SERVER_ID = "1552565879017832528";
 const FEEDBACK_CHANNEL_NAME = "・feedback";
+const FEEDBACK_CHANNEL_ID = process.env.DISCORD_FEEDBACK_CHANNEL_ID?.trim();
 
 export class FeedbackStore {
   private feedbacks = new Map<string, Feedback>();
@@ -33,13 +34,19 @@ export async function sendFeedbackToServer(
   feedback: Feedback,
 ): Promise<void> {
   const guild = await client.guilds.fetch(FEEDBACK_SERVER_ID);
-  const channels = await guild.channels.fetch();
-  const feedbackChannel = channels.find(
-    (channel) => channel?.name === FEEDBACK_CHANNEL_NAME && channel?.isTextBased(),
-  );
+  const feedbackChannel = FEEDBACK_CHANNEL_ID
+    ? await guild.channels.fetch(FEEDBACK_CHANNEL_ID)
+    : (await guild.channels.fetch()).find(
+        (channel) =>
+          channel?.name === FEEDBACK_CHANNEL_NAME && channel?.isTextBased(),
+      );
 
   if (!feedbackChannel || !feedbackChannel.isTextBased()) {
-    throw new Error("Feedback channel not found or is not text-based.");
+    throw new Error(
+      FEEDBACK_CHANNEL_ID
+        ? `Feedback channel "${FEEDBACK_CHANNEL_ID}" was not found or is not text-based.`
+        : `Feedback channel "${FEEDBACK_CHANNEL_NAME}" was not found or is not text-based.`,
+    );
   }
 
   const embed = new EmbedBuilder()

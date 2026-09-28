@@ -1,4 +1,6 @@
 import {
+  ApplicationIntegrationType,
+  InteractionContextType,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
@@ -73,6 +75,15 @@ export const giveawayCommands = [
   new SlashCommandBuilder()
     .setName("feedback")
     .setDescription("Envoyer un feedback sur le bot")
+    .setContexts(
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    )
+    .setIntegrationTypes(
+      ApplicationIntegrationType.GuildInstall,
+      ApplicationIntegrationType.UserInstall,
+    )
     .addStringOption((option) =>
       option
         .setName("message")
