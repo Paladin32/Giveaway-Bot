@@ -550,11 +550,23 @@ async function handleClaimButton(
 async function registerCommands(
   clientId: string,
   token: string,
+  guildIds: readonly string[],
 ): Promise<void> {
   const rest = new REST({ version: "10" }).setToken(token);
+
+  // The global list is the allowlist for this application. PUT replaces every
+  // other global command that may have been registered outside this project.
   await rest.put(Routes.applicationCommands(clientId), {
     body: giveawayCommands,
   });
+
+  // Remove stale server-specific commands. The global allowlist above remains
+  // available in those servers, so this does not remove the Replit commands.
+  for (const guildId of guildIds) {
+    await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+      body: [],
+    });
+  }
 }
 
 export async function startGiveawayBot(): Promise<void> {
@@ -600,8 +612,17 @@ export async function startGiveawayBot(): Promise<void> {
       { botUserId: readyClient.user.id },
       "Discord giveaway bot connected",
     );
-    void registerCommands(readyClient.user.id, token)
-      .then(() => logger.info("Registered giveaway slash commands"))
+    void registerCommands(
+      readyClient.user.id,
+      token,
+      [...client.guilds.cache.keys()],
+    )
+      .then(() =>
+        logger.info(
+          { guildCount: client.guilds.cache.size },
+          "Registered Replit giveaway slash commands and removed other application commands",
+        ),
+      )
       .catch((error: unknown) => {
         logger.error(
           { errorName: error instanceof Error ? error.name : "UnknownError" },
