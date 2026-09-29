@@ -12,6 +12,7 @@ A Discord bot for timed giveaways, private winner selection, and prize claim dea
 - Required secret to connect the bot: `DISCORD_BOT_TOKEN`
 - Optional env: `GIVEAWAY_DATA_FILE` — override the local JSON file used to persist giveaways
 - Optional env: `DISCORD_FEEDBACK_CHANNEL_ID` — target a specific feedback channel ID; otherwise the bot uses `・feedback` in the configured feedback server
+- Railway requires the `DISCORD_BOT_TOKEN` variable and uses `railway.json` plus `nixpacks.toml` to build and run the API server continuously
 
 ## Stack
 
